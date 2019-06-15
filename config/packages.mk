@@ -155,6 +155,14 @@ PRODUCT_PACKAGES += \
     QStileOreo \
     QStileOreoCircleTrim \
     QStileOreoSquircleTrim
+	
+# QS header styles
+PRODUCT_PACKAGES += \
+    QSHeaderBlack \
+    QSHeaderGrey \
+    QSHeaderLightGrey \
+    QSHeaderAccent \
+    QSHeaderTransparent
 
 # Charger images
 PRODUCT_PACKAGES += \
