@@ -39,7 +39,9 @@ BEAST_DISPLAY_VERSION := $(BEAST_VERSION)-$(BEAST_BUILD_TYPE)
 PRODUCT_PROPERTY_OVERRIDES += \
 BUILD_DISPLAY_ID=$(BUILD_ID) \
 com.beast.fingerpring=$(BEAST_FINGERPRINT) \
-ro.beast.version=$(BEAST_VERSION) \
+ro.beast.version=$(BEAST_VERSION)
+
+PRODUCT_GENERIC_PROPERTIES += \
 ro.beast.display.version=$(BEAST_DISPLAY_VERSION) \
 ro.beast.releasetype=$(BEAST_BUILD_TYPE) \
 ro.modversion=$(TARGET_BACON_NAME)
