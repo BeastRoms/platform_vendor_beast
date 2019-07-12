@@ -154,7 +154,25 @@ PRODUCT_PACKAGES += \
     QStileSquaremedo \
     QStileOreo \
     QStileOreoCircleTrim \
-    QStileOreoSquircleTrim
+    QStileOreoSquircleTrim \
+    QStileInk \
+    QStileInkDrop \
+    QStileTeardrop \
+    QStileCookie \
+    QStilesCircleOutline \
+    QStileHexagon \
+    QStileStar \
+    QStileSquare \
+    QStileGear \
+    QStileBadge \
+    QStileBadgetwo \
+    QStileSquircle \
+    QStileDiamond \
+    QStileNeonlike \
+    QStileOOS \
+    QStileTriangles \
+    QStileDivided \
+    QStileCosmos
 	
 # QS header styles
 PRODUCT_PACKAGES += \
