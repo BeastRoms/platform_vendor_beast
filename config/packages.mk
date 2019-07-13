@@ -169,7 +169,7 @@ PRODUCT_PACKAGES += \
     QStileSquircle \
     QStileDiamond \
     QStileNeonlike \
-    QStileOOS \
+    QStileOxygen \
     QStileTriangles \
     QStileDivided \
     QStileCosmos
