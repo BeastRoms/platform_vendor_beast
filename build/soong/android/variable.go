@@ -34,6 +34,15 @@ type Product_variables struct {
 	Target_process_sdk_version_override struct {
 		Cppflags []string
 	}
+	Supports_legacy_hw_fde struct {
+		Cflags []string
+	}
+	Should_skip_waiting_for_qsee struct {
+		Cflags []string
+	}
+	Uses_metadata_as_fde_key struct {
+		Cflags []string
+	}
 }
 
 type ProductVariables struct {
@@ -49,4 +58,7 @@ type ProductVariables struct {
 	Uses_qcom_bsp_legacy  *bool `json:",omitempty"`
 	Target_process_sdk_version_override *string `json:",omitempty"`
 	Target_use_sdclang        *bool `json:",omitempty"`
+	Supports_legacy_hw_fde  *bool `json:",omitempty"`
+	Should_skip_waiting_for_qsee  *bool `json:",omitempty"`
+	Uses_metadata_as_fde_key  *bool `json:",omitempty"`
 }
