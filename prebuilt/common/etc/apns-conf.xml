@@ -6844,6 +6844,13 @@
       mmsport="8080"
       type="mms"
   />
+  
+  <apn carrier="DANYCOM Internet"
+      mcc="250"
+      mnc="06"
+      apn="internet.danycom.ru"
+      type="default,supl"
+  />
 
 <apn carrier="МТС-интернет"
   apn="internet.mts.ru"
