@@ -21,7 +21,6 @@ PRODUCT_PACKAGES += \
     LiveWallpapers \
     LiveWallpapersPicker \
     MarkupGoogle \
-    messaging \
     SubstratumSignature \
     WellbeingPrebuilt \
     OmniStyle \
@@ -45,7 +44,8 @@ PRODUCT_PACKAGES += \
     LatinIME \
     Launcher3QuickStep \
     messaging \
-    Stk
+    Stk \
+    CellBroadcastReceiver
 
  # Extra tools
 PRODUCT_PACKAGES += \
