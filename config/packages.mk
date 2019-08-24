@@ -20,7 +20,6 @@ PRODUCT_PACKAGES += \
     Launcher3 \
     LiveWallpapers \
     LiveWallpapersPicker \
-    MarkupGoogle \
     SubstratumSignature \
     WellbeingPrebuilt \
     OmniStyle \
