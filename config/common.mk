@@ -36,6 +36,13 @@ PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/bin/backuptool_postinstall.sh:system/bin/backuptool_postinstall.sh
 endif
 
+# Markup libs
+ifeq ($(TARGET_ARCH),arm64)
+    PRODUCT_COPY_FILES += \
+    vendor/beast/prebuilt/common/lib/libsketchology_native.so:system/lib/libsketchology_native.so \
+    vendor/beast/prebuilt/common/lib64/libsketchology_native.so:system/lib64/libsketchology_native.so
+endif
+
 # priv-app permissions
 PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/etc/permissions/privapp-permissions-beast.xml:system/etc/permissions/privapp-permissions-beast.xml \
