@@ -1,2 +1,2 @@
 # Inherit common stuff
-$(call inherit-product, vendor/potato/config/common.mk)
+$(call inherit-product, vendor/beast/config/common.mk)

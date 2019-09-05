@@ -1,4 +1,4 @@
-$(call add_json_map, Potato)
+$(call add_json_map, Beast)
 
 $(call add_json_bool, Device_support_hwfde, $(filter true,$(TARGET_HW_DISK_ENCRYPTION)))
 $(call add_json_bool, Device_support_hwfde_perf, $(filter true,$(TARGET_HW_DISK_ENCRYPTION_PERF)))

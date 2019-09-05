@@ -146,7 +146,7 @@ def fetch_query(remote_url, query):
 
 if __name__ == '__main__':
     # Default to POSP Gerrit
-    default_gerrit = 'https://review.potatoproject.co'
+    default_gerrit = 'https://review.beastproject.co'
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent('''\
         repopick.py is a utility to simplify the process of cherry picking
@@ -431,9 +431,9 @@ if __name__ == '__main__':
                 print('Trying to fetch the change from GitHub')
 
             if args.pull:
-                cmd = ['git pull --no-edit potato', item['fetch'][method]['ref']]
+                cmd = ['git pull --no-edit beast', item['fetch'][method]['ref']]
             else:
-                cmd = ['git fetch potato', item['fetch'][method]['ref']]
+                cmd = ['git fetch beast', item['fetch'][method]['ref']]
             if args.quiet:
                 cmd.append('--quiet')
             else:

@@ -1,6 +1,6 @@
-function __print_potato_functions_help() {
+function __print_beast_functions_help() {
 cat <<EOF
-Additional PotatoROM functions:
+Additional BeastROM functions:
 - cout:            Changes directory to out.
 - mmp:             Builds all of the modules in the current directory and pushes them to the device.
 - mmap:            Builds all of the modules in the current directory and its dependencies, then pushes the package to the device.
@@ -56,7 +56,7 @@ function brunch()
 {
     breakfast $*
     if [ $? -eq 0 ]; then
-        mka potato
+        mka beast
     else
         echo "No such item in brunch menu. Try 'breakfast'"
         return 1
@@ -68,9 +68,9 @@ function breakfast()
 {
     target=$1
     local variant=$2
-    POTATO_DEVICES_ONLY="true"
+    BEAST_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
-    for f in `/bin/ls vendor/potato/vendorsetup.sh 2> /dev/null`
+    for f in `/bin/ls vendor/beast/vendorsetup.sh 2> /dev/null`
         do
             echo "including $f"
             . $f
@@ -86,12 +86,12 @@ function breakfast()
             # A buildtype was specified, assume a full device name
             lunch $target
         else
-            # This is probably just the Potato model name
+            # This is probably just the Beast model name
             if [ -z "$variant" ]; then
                 variant="userdebug"
             fi
 
-            lunch potato_$target-$variant
+            lunch beast_$target-$variant
         fi
     fi
     return $?
@@ -102,7 +102,7 @@ alias bib=breakfast
 function eat()
 {
     if [ "$OUT" ] ; then
-        ZIPPATH=`ls -tr "$OUT"/potato-*.zip | tail -1`
+        ZIPPATH=`ls -tr "$OUT"/beast-*.zip | tail -1`
         if [ ! -f $ZIPPATH ] ; then
             echo "Nothing to eat"
             return 1
@@ -116,7 +116,7 @@ function eat()
             done
             echo "Device Found.."
         fi
-        if (adb shell getprop ro.potato.device | grep -q "$POTATO_BUILD"); then
+        if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD"); then
             # if adbd isn't root we can't write to /cache/recovery/
             adb root
             sleep 1
@@ -132,7 +132,7 @@ EOF
             fi
             rm /tmp/command
         else
-            echo "The connected device does not appear to be $POTATO_BUILD, run away!"
+            echo "The connected device does not appear to be $BEAST_BUILD, run away!"
         fi
         return $?
     else
@@ -259,14 +259,14 @@ function dddclient()
 function gerritpush()
 {
 
-    GERRIT_URL=review.potatoproject.co;
+    GERRIT_URL=review.beastproject.co;
     DEFAULT_BRANCH=baked-release;
     PROJECT_PREFIX=;
     ref=for;
 
     local PROJECT_EXCLUSIONS=(
         "device_qcom_sepolicy"
-        "device_potato_sepolicy"
+        "device_beast_sepolicy"
     );
 
     while getopts "tdb" OPTION; do
@@ -296,9 +296,9 @@ function gerritpush()
     local PROJECT=${PROJECT_PREFIX}$(echo $(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##") | sed 's/\//_/g');
     if (echo $PROJECT | grep -qv "^device") || [[ "${PROJECT_EXCLUSIONS[@]}" =~ "$PROJECT" ]]
     then
-      local PFX="PotatoProject/";
+      local PFX="BeastProject/";
     else
-      local PFX="PotatoDevices/";
+      local PFX="BeastDevices/";
     fi
     cd $c;
     if [[ -z "${GERRIT_USER}" ]]; then
@@ -398,7 +398,7 @@ function installboot()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.potato.device | grep -q "$POTATO_BUILD");
+    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD");
     then
         adb push $OUT/boot.img /cache/
         if [ -e "$OUT/system/lib/modules/*" ];
@@ -413,7 +413,7 @@ function installboot()
         adb shell rm -rf /cache/boot.img
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $POTATO_BUILD, run away!"
+        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
     fi
 }
 
@@ -447,14 +447,14 @@ function installrecovery()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 >> /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.potato.device | grep -q "$POTATO_BUILD");
+    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD");
     then
         adb push $OUT/recovery.img /cache/
         adb shell dd if=/cache/recovery.img of=$PARTITION
         adb shell rm -rf /cache/recovery.img
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $POTATO_BUILD, run away!"
+        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
     fi
 }
 
@@ -474,8 +474,8 @@ function makerecipe() {
     if [ "$REPO_REMOTE" = "github" ]
     then
         pwd
-        potatoremote
-        git push potato HEAD:refs/heads/'$1'
+        beastremote
+        git push beast HEAD:refs/heads/'$1'
     fi
     '
 }
@@ -486,7 +486,7 @@ function mka() {
 
 function mergeaosptag()
 {
-  username=PotatoProject
+  username=BeastProject
   default_branch=baked-release
 
   for var in "$@"
@@ -497,21 +497,21 @@ function mergeaosptag()
   done
 
   whitelist=(
-    device_potato_sepolicy
+    device_beast_sepolicy
     device_qcom_sepolicy
     external_json-c
     external_sony_boringssl-compat
     hardware_libhardware_legacy
-    hardware_potato_interfaces
+    hardware_beast_interfaces
     hardware_qcom_power
     manifest
     packages_apps_DUI
     packages_apps_Lean
     packages_apps_Wedges
-    vendor_potato
+    vendor_beast
     prebuilts_clang_host_linux-x86
     website
-    PotatoBot_tg
+    BeastBot_tg
   )
 
   whitelist_detected=();
@@ -583,7 +583,7 @@ function cmka() {
     if [ ! -z "$1" ]; then
         for i in "$@"; do
             case $i in
-                potato|otapackage|systemimage)
+                beast|otapackage|systemimage)
                     mka installclean
                     mka $i
                     ;;
@@ -617,7 +617,7 @@ function deleteOTA() {
         --user $OTA_API_USER:$OTA_API_SECRET \
         --request POST \
         --data "$data" \
-        https://api.potatoproject.co/deleteUpdate 2> /dev/null | \
+        https://api.beastproject.co/deleteUpdate 2> /dev/null | \
         python -c "import sys, json; print json.load(sys.stdin)['response']";
 }
 
@@ -640,8 +640,8 @@ function pushOTA() {
       esac
     done
 
-    file=$(ls -t ${OUT}/potato_${POTATO_BUILD}-9* | sed -n 2p);
-    URL="https://sourceforge.net/projects/posp/files/$POTATO_BUILD/weeklies/${file##*/}";
+    file=$(ls -t ${OUT}/beast_${BEAST_BUILD}-9* | sed -n 2p);
+    URL="https://sourceforge.net/projects/posp/files/$BEAST_BUILD/weeklies/${file##*/}";
 
     if [[ "${CUSTOM_URL}" == true ]]; then
       printf 'Enter url: ';
@@ -653,14 +653,14 @@ function pushOTA() {
     id=$(md5sum $file | awk '{ print $1 }');
     romtype=$(echo $BUILD_TYPE | tr '[:upper:]' '[:lower:]');
     size=$(stat -c%s $file);
-    version=$(grep ro\.potato\.version $OUT/system/build.prop | cut -d= -f2);
-    data="{\"datetime\":\"$datetime\", \"devicename\":\"$POTATO_BUILD\",\"filename\":\"${file##*/}\",\"id\":\"$id\",\"romtype\":\"$romtype\",\"size\":\"$size\",\"url\":\"$url\",\"version\":\"$version\"}";
+    version=$(grep ro\.beast\.version $OUT/system/build.prop | cut -d= -f2);
+    data="{\"datetime\":\"$datetime\", \"devicename\":\"$BEAST_BUILD\",\"filename\":\"${file##*/}\",\"id\":\"$id\",\"romtype\":\"$romtype\",\"size\":\"$size\",\"url\":\"$url\",\"version\":\"$version\"}";
 
     curl --header "Content-Type: application/json" \
         --user $OTA_API_USER:$OTA_API_SECRET \
         --request POST \
         --data "$data" \
-        https://api.potatoproject.co/pushUpdate 2> /dev/null | \
+        https://api.beastproject.co/pushUpdate 2> /dev/null | \
         python -c "import sys, json; print json.load(sys.stdin)['response']";
 }
 
@@ -713,7 +713,7 @@ function dopush()
         echo "Device Found."
     fi
 
-    if (adb shell getprop ro.potato.device | grep -q "$POTATO_BUILD") || [ "$FORCE_PUSH" = "true" ];
+    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD") || [ "$FORCE_PUSH" = "true" ];
     then
     # retrieve IP and PORT info if we're using a TCP connection
     TCPIPPORT=$(adb devices \
@@ -831,7 +831,7 @@ EOF
     rm -f $OUT/.log
     return 0
     else
-        echo "The connected device does not appear to be $POTATO_BUILD, run away!"
+        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
     fi
 }
 
@@ -844,13 +844,13 @@ alias cmkap='dopush cmka'
 
 function repopick() {
     T=$(gettop)
-    $T/vendor/potato/build/tools/repopick.py $@
+    $T/vendor/beast/build/tools/repopick.py $@
 }
 
 function fixup_common_out_dir() {
     common_out_dir=$(get_build_var OUT_DIR)/target/common
     target_device=$(get_build_var TARGET_DEVICE)
-    if [ ! -z $POTATO_FIXUP_COMMON_OUT ]; then
+    if [ ! -z $BEAST_FIXUP_COMMON_OUT ]; then
         if [ -d ${common_out_dir} ] && [ ! -L ${common_out_dir} ]; then
             mv ${common_out_dir} ${common_out_dir}-${target_device}
             ln -s ${common_out_dir}-${target_device} ${common_out_dir}
@@ -875,7 +875,7 @@ if [ -d $(gettop)/prebuilts/snapdragon-llvm/toolchains ]; then
             export SDCLANG=true
             export SDCLANG_PATH=$(gettop)/prebuilts/snapdragon-llvm/toolchains/llvm-Snapdragon_LLVM_for_Android_4.0/prebuilt/linux-x86_64/bin
             export SDCLANG_PATH_2=$(gettop)/prebuilts/snapdragon-llvm/toolchains/llvm-Snapdragon_LLVM_for_Android_4.0/prebuilt/linux-x86_64/bin
-            export SDCLANG_LTO_DEFS=$(gettop)/vendor/potato/build/core/sdllvm-lto-defs.mk
+            export SDCLANG_LTO_DEFS=$(gettop)/vendor/beast/build/core/sdllvm-lto-defs.mk
             ;;
     esac
 fi

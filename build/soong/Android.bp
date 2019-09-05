@@ -1,6 +1,6 @@
 bootstrap_go_package {
-    name: "soong-potato",
-    pkgPath: "potato/soong/android",
+    name: "soong-beast",
+    pkgPath: "beast/soong/android",
     srcs: [
         "android/config.go",
         "android/variable.go",
@@ -8,8 +8,8 @@ bootstrap_go_package {
 }
 
 bootstrap_go_package {
-    name: "soong-potato-generator",
-    pkgPath: "potato/soong/generator",
+    name: "soong-beast-generator",
+    pkgPath: "beast/soong/generator",
     deps: [
         "blueprint",
         "blueprint-pathtools",
@@ -24,7 +24,7 @@ bootstrap_go_package {
     pluginFor: ["soong_build"],
 }
 
-potato_generator {
+beast_generator {
     name: "generated_kernel_includes",
 
     // The headers make command

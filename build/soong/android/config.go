@@ -1,13 +1,13 @@
 package android
 
-// Global config used by Potato soong additions
-var PotatoConfig = struct {
+// Global config used by Beast soong additions
+var BeastConfig = struct {
 	// List of packages that are permitted
 	// for java source overlays.
 	JavaSourceOverlayModuleWhitelist []string
 }{
 	// JavaSourceOverlayModuleWhitelist
 	[]string{
-		"org.potato.hardware",
+		"org.beast.hardware",
 	},
 }
