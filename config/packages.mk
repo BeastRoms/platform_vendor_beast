@@ -5,8 +5,7 @@ PRODUCT_PACKAGES += \
 # Charger
 PRODUCT_PACKAGES += \
     charger_res_images
-
-# Weather
+	
+# Phonograph
 PRODUCT_PACKAGES += \
-    PermissionController \
-	Launcher3
+    Phonograph

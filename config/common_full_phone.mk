@@ -17,3 +17,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     messaging \
     Stk
+	
+# Default ringtone
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+    ro.config.ringtone=The_big_adventure.ogg

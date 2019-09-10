@@ -43,31 +43,18 @@ PRODUCT_PROPERTY_OVERRIDES += \
     persist.debug.wfd.enable=1 \
     persist.sys.wfd.virtual=0 \
     ro.build.selinux=1 \
-    ro.boot.vendor.overlay.theme=com.beast.overlay.accent.purple;com.beast.overlay.base.stockfixed;com.beast.overlay.lawnconf;com.beast.overlay.shape.circle \
     ro.opa.eligible_device=true
 
-
-# POSP Common
-PRODUCT_COPY_FILES += \
-    vendor/beast/prebuilt/common/etc/permissions/privapp-permissions-beast.xml:system/etc/permissions/privapp-permissions-beast.xml
 
 # Fix Google dialer
 PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/etc/dialer_experience.xml:system/etc/sysconfig/dialer_experience.xml
-
-# Clean up packages cache to avoid wrong strings and resources
-PRODUCT_COPY_FILES += \
-    vendor/beast/prebuilt/common/bin/clean_cache.sh:system/bin/clean_cache.sh
-
 
 # Set custom volume steps
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.config.media_vol_steps=30 \
     ro.config.bt_sco_vol_steps=30
 
-# Power whitelist
-PRODUCT_COPY_FILES += \
-    vendor/beast/config/permissions/custom-power-whitelist.xml:system/etc/sysconfig/custom-power-whitelist.xml
 
 # Disable Rescue Party
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -83,13 +70,6 @@ PRODUCT_PACKAGES += \
     mkfs.exfat
 endif
 
-# Markup libs
-PRODUCT_COPY_FILES += \
-    vendor/beast/prebuilt/common/lib/libsketchology_native.so:system/lib/libsketchology_native.so \
-    vendor/beast/prebuilt/common/lib64/libsketchology_native.so:system/lib64/libsketchology_native.so
-
-# GSans font
-include vendor/beast/config/fonts.mk
 
 # We modify several neverallows, so let the build proceed
 ifneq ($(TARGET_BUILD_VARIANT),user)
