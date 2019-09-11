@@ -115,7 +115,7 @@ TARGET_PREBUILT_INT_KERNEL := $(KERNEL_OUT)/arch/$(KERNEL_ARCH)/boot/$(BOARD_KER
 
 # Clear this first to prevent accidental poisoning from env
 KERNEL_MAKE_FLAGS +=
-KERNEL_MAKE_FLAGS += -j16
+KERNEL_MAKE_FLAGS += -j24
 
 ifeq ($(KERNEL_ARCH),arm)
   # Avoid "Unknown symbol _GLOBAL_OFFSET_TABLE_" errors
