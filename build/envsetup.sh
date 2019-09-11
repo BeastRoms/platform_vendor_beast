@@ -1,23 +1,23 @@
-function __print_beast_functions_help() {
+function __print_custom_functions_help() {
 cat <<EOF
-Additional BeastROM functions:
+Additional functions:
 - cout:            Changes directory to out.
 - mmp:             Builds all of the modules in the current directory and pushes them to the device.
 - mmap:            Builds all of the modules in the current directory and its dependencies, then pushes the package to the device.
 - mmmp:            Builds all of the modules in the supplied directories and pushes them to the device.
-- gerritpush:      Push changes to the gerrit code review server.
+- pixelgerrit:     A Git wrapper that fetches/pushes patch from/to PixelExperience Gerrit Review.
+- pixelrebase:     Rebase a Gerrit change and push it again.
 - aospremote:      Add git remote for matching AOSP repository.
 - cafremote:       Add git remote for matching CodeAurora repository.
-- mergeaosptag:    Merge specified AOSP tag to all relevant repos.
+- githubremote:    Add git remote for PixelExperience Github.
 - mka:             Builds using SCHED_BATCH on all processors.
 - mkap:            Builds the module(s) using mka and pushes them to the device.
 - cmka:            Cleans and builds using mka.
-- deleteOTA:       Deletes an OTA entry from server API.
-- pushOTA:         Pushes OTA data to server API.
 - repodiff:        Diff 2 different branches or tags within the same repo
 - repolastsync:    Prints date and time of last repo sync.
 - reposync:        Parallel repo sync using ionice and SCHED_BATCH.
-- repopick:        Utility to fetch changes from Gerrit.
+- repopick:        Utility to fetch changes from PixelExperience Gerrit.
+- losrepopick:     Utility to fetch changes from Lineage Gerrit.
 - installboot:     Installs a boot.img to the connected device.
 - installrecovery: Installs a recovery.img to the connected device.
 EOF
@@ -56,7 +56,7 @@ function brunch()
 {
     breakfast $*
     if [ $? -eq 0 ]; then
-        mka beast
+        mka bacon
     else
         echo "No such item in brunch menu. Try 'breakfast'"
         return 1
@@ -68,8 +68,8 @@ function breakfast()
 {
     target=$1
     local variant=$2
-    BEAST_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
+    add_lunch_combo full-eng
     for f in `/bin/ls vendor/beast/vendorsetup.sh 2> /dev/null`
         do
             echo "including $f"
@@ -86,7 +86,7 @@ function breakfast()
             # A buildtype was specified, assume a full device name
             lunch $target
         else
-            # This is probably just the Beast model name
+            # This is probably just the model name
             if [ -z "$variant" ]; then
                 variant="userdebug"
             fi
@@ -102,21 +102,21 @@ alias bib=breakfast
 function eat()
 {
     if [ "$OUT" ] ; then
-        ZIPPATH=`ls -tr "$OUT"/beast-*.zip | tail -1`
+        ZIPPATH=`ls -tr "$OUT"/PixelExperience-*.zip | tail -1`
         if [ ! -f $ZIPPATH ] ; then
             echo "Nothing to eat"
             return 1
         fi
         adb start-server # Prevent unexpected starting server message from adb get-state in the next line
-        if [ $(adb get-state) != device -a $(adb shell test -e /sbin/recovery 2> /dev/null; echo $?) != 0 ] ; then
+        if [ $(adb get-state) != device -a $(adb shell 'test -e /sbin/recovery 2> /dev/null; echo $?') != 0 ] ; then
             echo "No device is online. Waiting for one..."
             echo "Please connect USB and/or enable USB debugging"
-            until [ $(adb get-state) = device -o $(adb shell test -e /sbin/recovery 2> /dev/null; echo $?) = 0 ];do
+            until [ $(adb get-state) = device -o $(adb shell 'test -e /sbin/recovery 2> /dev/null; echo $?') = 0 ];do
                 sleep 1
             done
             echo "Device Found.."
         fi
-        if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD"); then
+        if (adb shell getprop org.pixelexperience.device | grep -q "$CUSTOM_BUILD"); then
             # if adbd isn't root we can't write to /cache/recovery/
             adb root
             sleep 1
@@ -132,7 +132,7 @@ EOF
             fi
             rm /tmp/command
         else
-            echo "The connected device does not appear to be $BEAST_BUILD, run away!"
+            echo "The connected device does not appear to be $CUSTOM_BUILD, run away!"
         fi
         return $?
     else
@@ -256,70 +256,6 @@ function dddclient()
    fi
 }
 
-function gerritpush()
-{
-
-    GERRIT_URL=review.beastproject.co;
-    DEFAULT_BRANCH=baked-release;
-    PROJECT_PREFIX=;
-    ref=for;
-
-    local PROJECT_EXCLUSIONS=(
-        "device_qcom_sepolicy"
-        "device_beast_sepolicy"
-    );
-
-    while getopts "tdb" OPTION; do
-      case $OPTION in
-        t)
-                local USE_TOPIC="true"
-                ;;
-        d)
-                ref=heads
-                ;;
-        b)      local CUSTOM_BRANCH="true"
-                ;;
-      esac
-    done
-    if ! git rev-parse --git-dir &> /dev/null
-    then
-        echo "fatal: not a git repository (or any of the parent directories): .git"
-        return 1
-    fi
-    local c=$(pwd);
-    while [ ! -d ".git" ]; do
-      cd ../;
-    done;
-    if [[ ! -z "${PROJECT_PREFIX}" ]]; then
-      PROJECT_PREFIX=$(echo "${PROJECT_PREFIX}_");
-    fi
-    local PROJECT=${PROJECT_PREFIX}$(echo $(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##") | sed 's/\//_/g');
-    if (echo $PROJECT | grep -qv "^device") || [[ "${PROJECT_EXCLUSIONS[@]}" =~ "$PROJECT" ]]
-    then
-      local PFX="BeastProject/";
-    else
-      local PFX="BeastDevices/";
-    fi
-    cd $c;
-    if [[ -z "${GERRIT_USER}" ]]; then
-      printf 'Enter gerrit username: ';
-      read -r GERRIT_USER;
-    fi
-    export GERRIT_USER;
-    if [[ "${CUSTOM_BRANCH}" == true ]]; then
-      printf 'Enter branch: ';
-      read -r DEFAULT_BRANCH;
-    fi
-    if [[ "${USE_TOPIC}" == true ]]; then
-      printf 'Enter topic: '
-      read -r topic;
-      git push ssh://${GERRIT_USER}@${GERRIT_URL}:29418/$PFX$PROJECT HEAD:refs/${ref}/${DEFAULT_BRANCH}%topic=${topic};
-    else
-      git push ssh://${GERRIT_USER}@${GERRIT_URL}:29418/$PFX$PROJECT HEAD:refs/${ref}/${DEFAULT_BRANCH};
-    fi
-    unset USE_TOPIC;
-}
-
 function aospremote()
 {
     if ! git rev-parse --git-dir &> /dev/null
@@ -368,6 +304,27 @@ function cafremote()
     echo "Remote 'caf' created"
 }
 
+function githubremote()
+{
+    if ! git rev-parse --git-dir &> /dev/null
+    then
+        echo ".git directory not found. Please run this from the root directory of the Android repository you wish to set up."
+        return 1
+    fi
+    git remote rm github 2> /dev/null
+    local REMOTE=$(git config --get remote.aosp.projectname)
+
+    if [ -z "$REMOTE" ]
+    then
+        REMOTE=$(git config --get remote.caf.projectname)
+    fi
+
+    local PROJECT=$(echo $REMOTE | sed -e "s#platform/#android/#g; s#/#_#g")
+
+    git remote add github https://github.com/PixelExperience/$PROJECT
+    echo "Remote 'github' created"
+}
+
 function installboot()
 {
     if [ ! -e "$OUT/recovery/root/etc/recovery.fstab" ];
@@ -398,7 +355,7 @@ function installboot()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD");
+    if (adb shell getprop org.pixelexperience.device | grep -q "$CUSTOM_BUILD");
     then
         adb push $OUT/boot.img /cache/
         if [ -e "$OUT/system/lib/modules/*" ];
@@ -413,7 +370,7 @@ function installboot()
         adb shell rm -rf /cache/boot.img
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
+        echo "The connected device does not appear to be $CUSTOM_BUILD, run away!"
     fi
 }
 
@@ -447,143 +404,305 @@ function installrecovery()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 >> /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD");
+    if (adb shell getprop org.pixelexperience.device | grep -q "$CUSTOM_BUILD");
     then
         adb push $OUT/recovery.img /cache/
         adb shell dd if=/cache/recovery.img of=$PARTITION
         adb shell rm -rf /cache/recovery.img
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
+        echo "The connected device does not appear to be $CUSTOM_BUILD, run away!"
     fi
 }
 
-function makerecipe() {
-    if [ -z "$1" ]
-    then
-        echo "No branch name provided."
+function pixelgerrit() {
+    if [ "$(__detect_shell)" = "zsh" ]; then
+        # zsh does not define FUNCNAME, derive from funcstack
+        local FUNCNAME=$funcstack[1]
+    fi
+
+    if [ $# -eq 0 ]; then
+        $FUNCNAME help
         return 1
     fi
-    cd android
-    sed -i s/'default revision=.*'/'default revision="refs\/heads\/'$1'"'/ default.xml
-    git commit -a -m "$1"
-    cd ..
+    local user=`git config --get review.gerrit.pixelexperience.org.username`
+    local review=`git config --get remote.pixel.review`
+    local project=`git config --get remote.pixel.projectname`
+    local command=$1
+    shift
+    case $command in
+        help)
+            if [ $# -eq 0 ]; then
+                cat <<EOF
+Usage:
+    $FUNCNAME COMMAND [OPTIONS] [CHANGE-ID[/PATCH-SET]][{@|^|~|:}ARG] [-- ARGS]
 
-    repo forall -c '
+Commands:
+    fetch   Just fetch the change as FETCH_HEAD
+    help    Show this help, or for a specific command
+    pull    Pull a change into current branch
+    push    Push HEAD or a local branch to Gerrit for a specific branch
 
-    if [ "$REPO_REMOTE" = "github" ]
-    then
-        pwd
-        beastremote
-        git push beast HEAD:refs/heads/'$1'
+Any other Git commands that support refname would work as:
+    git fetch URL CHANGE && git COMMAND OPTIONS FETCH_HEAD{@|^|~|:}ARG -- ARGS
+
+See '$FUNCNAME help COMMAND' for more information on a specific command.
+
+Example:
+    $FUNCNAME checkout -b topic 1234/5
+works as:
+    git fetch http://DOMAIN/p/PROJECT refs/changes/34/1234/5 \\
+      && git checkout -b topic FETCH_HEAD
+will checkout a new branch 'topic' base on patch-set 5 of change 1234.
+Patch-set 1 will be fetched if omitted.
+EOF
+                return
+            fi
+            case $1 in
+                __cmg_*) echo "For internal use only." ;;
+                changes|for)
+                    if [ "$FUNCNAME" = "pixelgerrit" ]; then
+                        echo "'$FUNCNAME $1' is deprecated."
+                    fi
+                    ;;
+                help) $FUNCNAME help ;;
+                fetch|pull) cat <<EOF
+usage: $FUNCNAME $1 [OPTIONS] CHANGE-ID[/PATCH-SET]
+
+works as:
+    git $1 OPTIONS http://DOMAIN/p/PROJECT \\
+      refs/changes/HASH/CHANGE-ID/{PATCH-SET|1}
+
+Example:
+    $FUNCNAME $1 1234
+will $1 patch-set 1 of change 1234
+EOF
+                    ;;
+                push) cat <<EOF
+usage: $FUNCNAME push [OPTIONS] [LOCAL_BRANCH:]REMOTE_BRANCH
+
+works as:
+    git push OPTIONS ssh://USER@DOMAIN:29418/PROJECT \\
+      {LOCAL_BRANCH|HEAD}:refs/for/REMOTE_BRANCH
+
+Example:
+    $FUNCNAME push fix6789:gingerbread
+will push local branch 'fix6789' to Gerrit for branch 'gingerbread'.
+HEAD will be pushed from local if omitted.
+EOF
+                    ;;
+                *)
+                    $FUNCNAME __cmg_err_not_supported $1 && return
+                    cat <<EOF
+usage: $FUNCNAME $1 [OPTIONS] CHANGE-ID[/PATCH-SET][{@|^|~|:}ARG] [-- ARGS]
+
+works as:
+    git fetch http://DOMAIN/p/PROJECT \\
+      refs/changes/HASH/CHANGE-ID/{PATCH-SET|1} \\
+      && git $1 OPTIONS FETCH_HEAD{@|^|~|:}ARG -- ARGS
+EOF
+                    ;;
+            esac
+            ;;
+        __cmg_get_ref)
+            $FUNCNAME __cmg_err_no_arg $command $# && return 1
+            local change_id patchset_id hash
+            case $1 in
+                */*)
+                    change_id=${1%%/*}
+                    patchset_id=${1#*/}
+                    ;;
+                *)
+                    change_id=$1
+                    patchset_id=1
+                    ;;
+            esac
+            hash=$(($change_id % 100))
+            case $hash in
+                [0-9]) hash="0$hash" ;;
+            esac
+            echo "refs/changes/$hash/$change_id/$patchset_id"
+            ;;
+        fetch|pull)
+            $FUNCNAME __cmg_err_no_arg $command $# help && return 1
+            $FUNCNAME __cmg_err_not_repo && return 1
+            local change=$1
+            shift
+            git $command $@ http://$review/p/$project \
+                $($FUNCNAME __cmg_get_ref $change) || return 1
+            ;;
+        push)
+            $FUNCNAME __cmg_err_no_arg $command $# help && return 1
+            $FUNCNAME __cmg_err_not_repo && return 1
+            if [ -z "$user" ]; then
+                echo >&2 "Gerrit username not found."
+                return 1
+            fi
+            local local_branch remote_branch
+            case $1 in
+                *:*)
+                    local_branch=${1%:*}
+                    remote_branch=${1##*:}
+                    ;;
+                *)
+                    local_branch=HEAD
+                    remote_branch=$1
+                    ;;
+            esac
+            shift
+            git push $@ ssh://$user@$review:29418/$project \
+                $local_branch:refs/for/$remote_branch || return 1
+            ;;
+        changes|for)
+            if [ "$FUNCNAME" = "pixelgerrit" ]; then
+                echo >&2 "'$FUNCNAME $command' is deprecated."
+            fi
+            ;;
+        __cmg_err_no_arg)
+            if [ $# -lt 2 ]; then
+                echo >&2 "'$FUNCNAME $command' missing argument."
+            elif [ $2 -eq 0 ]; then
+                if [ -n "$3" ]; then
+                    $FUNCNAME help $1
+                else
+                    echo >&2 "'$FUNCNAME $1' missing argument."
+                fi
+            else
+                return 1
+            fi
+            ;;
+        __cmg_err_not_repo)
+            if [ -z "$review" -o -z "$project" ]; then
+                echo >&2 "Not currently in any reviewable repository."
+            else
+                return 1
+            fi
+            ;;
+        __cmg_err_not_supported)
+            $FUNCNAME __cmg_err_no_arg $command $# && return
+            case $1 in
+                #TODO: filter more git commands that don't use refname
+                init|add|rm|mv|status|clone|remote|bisect|config|stash)
+                    echo >&2 "'$FUNCNAME $1' is not supported."
+                    ;;
+                *) return 1 ;;
+            esac
+            ;;
+    #TODO: other special cases?
+        *)
+            $FUNCNAME __cmg_err_not_supported $command && return 1
+            $FUNCNAME __cmg_err_no_arg $command $# help && return 1
+            $FUNCNAME __cmg_err_not_repo && return 1
+            local args="$@"
+            local change pre_args refs_arg post_args
+            case "$args" in
+                *--\ *)
+                    pre_args=${args%%-- *}
+                    post_args="-- ${args#*-- }"
+                    ;;
+                *) pre_args="$args" ;;
+            esac
+            args=($pre_args)
+            pre_args=
+            if [ ${#args[@]} -gt 0 ]; then
+                change=${args[${#args[@]}-1]}
+            fi
+            if [ ${#args[@]} -gt 1 ]; then
+                pre_args=${args[0]}
+                for ((i=1; i<${#args[@]}-1; i++)); do
+                    pre_args="$pre_args ${args[$i]}"
+                done
+            fi
+            while ((1)); do
+                case $change in
+                    ""|--)
+                        $FUNCNAME help $command
+                        return 1
+                        ;;
+                    *@*)
+                        if [ -z "$refs_arg" ]; then
+                            refs_arg="@${change#*@}"
+                            change=${change%%@*}
+                        fi
+                        ;;
+                    *~*)
+                        if [ -z "$refs_arg" ]; then
+                            refs_arg="~${change#*~}"
+                            change=${change%%~*}
+                        fi
+                        ;;
+                    *^*)
+                        if [ -z "$refs_arg" ]; then
+                            refs_arg="^${change#*^}"
+                            change=${change%%^*}
+                        fi
+                        ;;
+                    *:*)
+                        if [ -z "$refs_arg" ]; then
+                            refs_arg=":${change#*:}"
+                            change=${change%%:*}
+                        fi
+                        ;;
+                    *) break ;;
+                esac
+            done
+            $FUNCNAME fetch $change \
+                && git $command $pre_args FETCH_HEAD$refs_arg $post_args \
+                || return 1
+            ;;
+    esac
+}
+
+function pixelrebase() {
+    local repo=$1
+    local refs=$2
+    local pwd="$(pwd)"
+    local dir="$(gettop)/$repo"
+
+    if [ -z $repo ] || [ -z $refs ]; then
+        echo "PixelExperience Gerrit Rebase Usage: "
+        echo "      pixelrebase <path to project> <patch IDs on Gerrit>"
+        echo "      The patch IDs appear on the Gerrit commands that are offered."
+        echo "      They consist on a series of numbers and slashes, after the text"
+        echo "      refs/changes. For example, the ID in the following command is 26/8126/2"
+        echo ""
+        echo "      git[...]ges_apps_Camera refs/changes/26/8126/2 && git cherry-pick FETCH_HEAD"
+        echo ""
+        return
     fi
-    '
+
+    if [ ! -d $dir ]; then
+        echo "Directory $dir doesn't exist in tree."
+        return
+    fi
+    cd $dir
+    repo=$(git config --get remote.pixel.projectname)
+    echo "Starting branch..."
+    repo start tmprebase .
+    echo "Bringing it up to date..."
+    repo sync .
+    echo "Fetching change..."
+    git fetch "http://gerrit.pixelexperience.org/p/$repo" "refs/changes/$refs" && git cherry-pick FETCH_HEAD
+    if [ "$?" != "0" ]; then
+        echo "Error cherry-picking. Not uploading!"
+        return
+    fi
+    echo "Uploading..."
+    repo upload .
+    echo "Cleaning up..."
+    repo abandon tmprebase .
+    cd $pwd
 }
 
 function mka() {
     m -j "$@"
 }
 
-function mergeaosptag()
-{
-  username=BeastProject
-  default_branch=baked-release
-
-  for var in "$@"
-  do
-    if [[ "$var" == "-p" ]]; then
-      PUSH=true
-    fi
-  done
-
-  whitelist=(
-    device_beast_sepolicy
-    device_qcom_sepolicy
-    external_json-c
-    external_sony_boringssl-compat
-    hardware_libhardware_legacy
-    hardware_beast_interfaces
-    hardware_qcom_power
-    manifest
-    packages_apps_DUI
-    packages_apps_Lean
-    packages_apps_Wedges
-    vendor_beast
-    prebuilts_clang_host_linux-x86
-    website
-    BeastBot_tg
-  )
-
-  whitelist_detected=();
-  conflicts=();
-
-  if [ !$(declare -f croot > /dev/null; echo $?) ]; then
-    while [ ! -e './build/envsetup.sh' ]; do
-      cd ../;
-    done;
-    source ./build/envsetup.sh;
-  fi;
-  croot;
-
-  for repo in $(curl -s https://api.github.com/users/${username}/repos\?per_page\=200 \
-    | grep html_url | awk 'NR%2 == 0' | cut -d ':' -f 2-3 | tr -d '",'); do
-  {
-    for clone_repo in ${whitelist[@]}; do
-    {
-      if [ "$(echo $repo | cut -d '/' -f 5)" = "$clone_repo" ]
-      then
-        whitelist_detected+=("$repo");
-        continue 2;
-      fi
-    }
-    done;
-    echo "";
-    echo -e "\e[1;32mUpdating $(echo $repo | cut -d '/' -f 5)...\e[0m";
-    cd $(echo $repo | cut -d '/' -f 5 | sed 's/_/\//g');
-    aospremote;
-    git branch $default_branch;
-    git update-ref refs/heads/$default_branch HEAD;
-    git checkout $default_branch;
-    git pull aosp $1 --no-edit;
-    if [[ $? != 0 ]]; then
-        conflicts+=("$repo");
-    else
-        if [[ "$PUSH" == true ]]; then
-            gerritpush -d;
-        fi
-    fi
-    croot;
-  }
-  done;
-
-  echo "";
-
-  for repo in ${whitelist_detected[@]}; do
-    echo -e "\e[0;36mIgnored whitelisted repo: \e[0m$(echo $repo)";
-  done;
-
-  echo "";
-
-  for repo in ${conflicts[@]}; do
-    echo -e "\e[0;31mCONFLICT: \e[0m$(echo $repo)";
-  done;
-
-  unset PUSH;
-  unset branch;
-  unset clone_repo;
-  unset conflicts;
-  unset remote_name;
-  unset repo;
-  unset username;
-  unset whitelist;
-  unset whitelist_detected;
-}
-
 function cmka() {
     if [ ! -z "$1" ]; then
         for i in "$@"; do
             case $i in
-                beast|otapackage|systemimage)
+                bacon|otapackage|systemimage)
                     mka installclean
                     mka $i
                     ;;
@@ -597,71 +716,6 @@ function cmka() {
         mka clean
         mka
     fi
-}
-
-function deleteOTA() {
-    if [[ -z "$OTA_API_USER" ]]; then
-        echo "Please specify OTA_API_USER!"; return 1
-    fi
-    if [[ -z "$OTA_API_SECRET" ]]; then
-        echo "Please set OTA_API_SECRET!"; return 1
-    fi
-    if [[ -z "$1" ]]; then
-        echo "Please provide md5sum!";
-        echo "Usage: deleteOTA id";
-        echo -e "\tid - md5sum of the build you'd like to delete\n\tfrom the OTA server";
-    fi
-    data="{\"hash\":\"$1\"}";
-
-    curl --header "Content-Type: application/json" \
-        --user $OTA_API_USER:$OTA_API_SECRET \
-        --request POST \
-        --data "$data" \
-        https://api.beastproject.co/deleteUpdate 2> /dev/null | \
-        python -c "import sys, json; print json.load(sys.stdin)['response']";
-}
-
-function pushOTA() {
-    OPTIND=1;
-    if [[ -z "$OTA_API_USER" ]]; then
-        echo "Please specify OTA_API_USER!"; return 1
-    fi
-    if [[ -z "$OTA_API_SECRET" ]]; then
-        echo "Please set OTA_API_SECRET!"; return 1
-    fi
-
-    CUSTOM_URL="false";
-
-    while getopts "u" OPTION; do
-      case $OPTION in
-        u)
-                CUSTOM_URL="true"
-                ;;
-      esac
-    done
-
-    file=$(ls -t ${OUT}/beast_${BEAST_BUILD}-9* | sed -n 2p);
-    URL="https://sourceforge.net/projects/posp/files/$BEAST_BUILD/weeklies/${file##*/}";
-
-    if [[ "${CUSTOM_URL}" == true ]]; then
-      printf 'Enter url: ';
-      read -r URL;
-    fi
-
-    url=$URL;
-    datetime=$(grep ro\.build\.date\.utc $OUT/system/build.prop | cut -d= -f2);
-    id=$(md5sum $file | awk '{ print $1 }');
-    romtype=$(echo $BUILD_TYPE | tr '[:upper:]' '[:lower:]');
-    size=$(stat -c%s $file);
-    version=$(grep ro\.beast\.version $OUT/system/build.prop | cut -d= -f2);
-    data="{\"datetime\":\"$datetime\", \"devicename\":\"$BEAST_BUILD\",\"filename\":\"${file##*/}\",\"id\":\"$id\",\"romtype\":\"$romtype\",\"size\":\"$size\",\"url\":\"$url\",\"version\":\"$version\"}";
-
-    curl --header "Content-Type: application/json" \
-        --user $OTA_API_USER:$OTA_API_SECRET \
-        --request POST \
-        --data "$data" \
-        https://api.beastproject.co/pushUpdate 2> /dev/null | \
-        python -c "import sys, json; print json.load(sys.stdin)['response']";
 }
 
 function repolastsync() {
@@ -688,7 +742,7 @@ function repodiff() {
 function _adb_connected {
     {
         if [[ "$(adb get-state)" == device &&
-              "$(adb shell test -e /sbin/recovery; echo $?)" != 0 ]]
+              "$(adb shell 'test -e /sbin/recovery; echo $?')" != 0 ]]
         then
             return 0
         fi
@@ -713,7 +767,7 @@ function dopush()
         echo "Device Found."
     fi
 
-    if (adb shell getprop ro.beast.device | grep -q "$BEAST_BUILD") || [ "$FORCE_PUSH" = "true" ];
+    if (adb shell getprop org.pixelexperience.device | grep -q "$CUSTOM_BUILD") || [ "$FORCE_PUSH" = "true" ];
     then
     # retrieve IP and PORT info if we're using a TCP connection
     TCPIPPORT=$(adb devices \
@@ -777,12 +831,12 @@ EOF
     fi
 
     stop_n_start=false
-    for FILE in $(echo $LOC | tr " " "\n"); do
+    for TARGET in $(echo $LOC | tr " " "\n" | sed "s#.*$OUT##" | sort | uniq); do
         # Make sure file is in $OUT/system or $OUT/data
-        case $FILE in
-            $OUT/system/*|$OUT/data/*)
-                # Get target file name (i.e. /system/bin/adb)
-                TARGET=$(echo $FILE | sed "s#$OUT##")
+        case $TARGET in
+            /system/*|/data/*)
+                # Get out file from target (i.e. /system/bin/adb)
+                FILE=$OUT$TARGET
             ;;
             *) continue ;;
         esac
@@ -831,7 +885,7 @@ EOF
     rm -f $OUT/.log
     return 0
     else
-        echo "The connected device does not appear to be $BEAST_BUILD, run away!"
+        echo "The connected device does not appear to be $CUSTOM_BUILD, run away!"
     fi
 }
 
@@ -844,13 +898,18 @@ alias cmkap='dopush cmka'
 
 function repopick() {
     T=$(gettop)
-    $T/vendor/beast/build/tools/repopick.py $@
+    $T/vendor/beast/tools/repopick.py $@
+}
+
+function losrepopick() {
+    T=$(gettop)
+    $T/vendor/beast/build/tools/losrepopick.py $@
 }
 
 function fixup_common_out_dir() {
     common_out_dir=$(get_build_var OUT_DIR)/target/common
     target_device=$(get_build_var TARGET_DEVICE)
-    if [ ! -z $BEAST_FIXUP_COMMON_OUT ]; then
+    if [ ! -z $FIXUP_COMMON_OUT ]; then
         if [ -d ${common_out_dir} ] && [ ! -L ${common_out_dir} ]; then
             mv ${common_out_dir} ${common_out_dir}-${target_device}
             ln -s ${common_out_dir}-${target_device} ${common_out_dir}
@@ -866,18 +925,15 @@ function fixup_common_out_dir() {
 }
 
 # Enable SD-LLVM if available
-if [ -d $(gettop)/prebuilts/snapdragon-llvm/toolchains ]; then
-    case `uname -s` in
-        Darwin)
-            # Darwin is not supported yet
-            ;;
-        *)
+if [ -d $(gettop)/vendor/qcom/sdclang ]; then
             export SDCLANG=true
-            export SDCLANG_PATH=$(gettop)/prebuilts/snapdragon-llvm/toolchains/llvm-Snapdragon_LLVM_for_Android_4.0/prebuilt/linux-x86_64/bin
-            export SDCLANG_PATH_2=$(gettop)/prebuilts/snapdragon-llvm/toolchains/llvm-Snapdragon_LLVM_for_Android_4.0/prebuilt/linux-x86_64/bin
-            export SDCLANG_LTO_DEFS=$(gettop)/vendor/beast/build/core/sdllvm-lto-defs.mk
-            ;;
-    esac
+            export SDCLANG_PATH="vendor/qcom/sdclang/6.0/prebuilt/linux-x86_64/bin"
+            export SDCLANG_LTO_DEFS="vendor/qcom/sdclang/sdllvm-lto-defs.mk"
+            export SDCLANG_CONFIG="vendor/qcom/sdclang/sdclang.json"
+            export SDCLANG_AE_CONFIG="vendor/qcom/sdclang/sdclangAE.json"
+            export SDCLANG_COMMON_FLAGS="-O3 -Wno-user-defined-warnings -Wno-vectorizer-no-neon -Wno-unknown-warning-option \
+-Wno-deprecated-register -Wno-tautological-type-limit-compare -Wno-sign-compare -Wno-gnu-folding-constant \
+-mllvm -arm-implicit-it=always -Wno-inline-asm -Wno-unused-command-line-argument -Wno-unused-variable"
 fi
 
 # Android specific JACK args

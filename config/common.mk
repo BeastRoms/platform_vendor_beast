@@ -50,12 +50,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/etc/dialer_experience.xml:system/etc/sysconfig/dialer_experience.xml
 
-# Set custom volume steps
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.config.media_vol_steps=30 \
-    ro.config.bt_sco_vol_steps=30
-
-
 # Disable Rescue Party
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.disable_rescue=true
