@@ -27,7 +27,7 @@ endif
 
 # Bootanimation
 PRODUCT_COPY_FILES += \
-    vendor/beast/prebuilt/common/media/bootanimation.zip:system/media/bootanimation.zip \
+    vendor/beast/prebuilt/common/media/bootanimation.zip:system/product/media/bootanimation.zip \
 
 PRODUCT_PROPERTY_OVERRIDES += \
     keyguard.no_require_sim=true \
