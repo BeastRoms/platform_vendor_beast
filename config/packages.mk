@@ -9,3 +9,7 @@ PRODUCT_PACKAGES += \
 # Phonograph
 PRODUCT_PACKAGES += \
     Phonograph
+	
+# ThemePicker
+PRODUCT_PACKAGES += \
+    ThemePicker
