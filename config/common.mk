@@ -27,7 +27,7 @@ endif
 
 # Bootanimation
 PRODUCT_COPY_FILES += \
-    vendor/beast/prebuilt/common/media/bootanimation.zip:system/product/media/bootanimation.zip \
+    vendor/beast/prebuilt/common/media/bootanimation.zip:system/product/media/bootanimation.zip
 
 PRODUCT_PROPERTY_OVERRIDES += \
     keyguard.no_require_sim=true \
@@ -64,6 +64,10 @@ PRODUCT_PACKAGES += \
     mkfs.exfat
 endif
 
+# Markup libs
+PRODUCT_COPY_FILES += \
+    vendor/beast/prebuilt/google/lib/libsketchology_native.so:system/product/lib/libsketchology_native.so \
+    vendor/beast/prebuilt/google/lib64/libsketchology_native.so:system/product/lib64/libsketchology_native.so
 
 # We modify several neverallows, so let the build proceed
 ifneq ($(TARGET_BUILD_VARIANT),user)

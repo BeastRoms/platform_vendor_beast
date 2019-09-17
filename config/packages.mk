@@ -6,6 +6,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     charger_res_images
 	
+# Google
+PRODUCT_PACKAGES += \
+    MarkupGoogle \
+    SoundPickerPrebuilt \
+    WellbeingPrebuilt
+	
 # Phonograph
 PRODUCT_PACKAGES += \
     Phonograph
