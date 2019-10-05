@@ -6,6 +6,9 @@ type Product_variables struct {
 	Target_process_sdk_version_override struct {
 		Cppflags []string
 	}
+	Should_skip_waiting_for_qsee struct {
+		Cflags []string
+	}
 	Device_support_hwfde struct {
 		Cflags []string
 		Header_libs []string
@@ -57,6 +60,7 @@ type Product_variables struct {
 }
 
 type ProductVariables struct {
+	Should_skip_waiting_for_qsee  *bool `json:",omitempty"`
 	Device_support_hwfde  *bool `json:",omitempty"`
 	Device_support_hwfde_perf  *bool `json:",omitempty"`
 	Device_support_legacy_hwfde  *bool `json:",omitempty"`
