@@ -44,11 +44,18 @@ PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.wfd.virtual=0 \
     ro.build.selinux=1 \
     ro.opa.eligible_device=true
-
+	
+PRODUCT_DEXPREOPT_SPEED_APPS += \
+    Settings \
+    SystemUI
 
 # Fix Google dialer
 PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/etc/dialer_experience.xml:system/etc/sysconfig/dialer_experience.xml
+	
+# Default and google apps privapp permissions
+PRODUCT_COPY_FILES += \
+    vendor/beast/prebuilt/common/etc/privapp-permissions-googleapps.xml:system/etc/permissions/privapp-permissions-googleapps.xml
 
 # Disable Rescue Party
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -109,3 +116,11 @@ include vendor/beast/config/packages.mk
 
 # Branding
 include vendor/beast/config/branding.mk
+
+# Do not include art debug targets
+PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD := false
+
+# Strip the local variable table and the local variable type table to reduce
+# the size of the system image. This has no bearing on stack traces, but will
+# leave less information available via JDWP.
+PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true

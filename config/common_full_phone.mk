@@ -13,10 +13,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     vendor/beast/prebuilt/common/etc/selective-spn-conf.xml:system/etc/selective-spn-conf.xml
 
-# Phone related apps
+# Telephony packages
 PRODUCT_PACKAGES += \
     messaging \
-    Stk
+    Stk \
+    CellBroadcastReceiver
 	
 # Default ringtone
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
